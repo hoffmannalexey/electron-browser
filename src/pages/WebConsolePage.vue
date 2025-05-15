@@ -4,6 +4,7 @@
     <q-page class="full-height">
       <div class="column full-height">
         <div class="q-pa-sm" style="flex: 0 0 70%;">
+          <!--suppress HtmlUnknownTag -->
           <webview
             ref="wv"
             src="https://www.google.com"
