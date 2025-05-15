@@ -1,12 +1,15 @@
 <!-- src/components/WebConsolePanel.vue -->
 <template>
-  <q-card flat class="full-height">
+  <q-card flat class="full-height flex flex-column">
     <q-card-section class="full-height q-pa-none">
+
+
       <q-scroll-area class="full-height">
         <div v-for="(line, i) in consoleLines" :key="i">{{ line }}</div>
       </q-scroll-area>
     </q-card-section>
-    <q-card-actions class="q-pa-sm">
+    <q-separator />
+    <q-card-actions class="q-pa-xs row items-center">
       <q-input
         v-model="command"
         @keyup.enter="emitCommand"
@@ -14,6 +17,17 @@
         type="textarea"
         autogrow
         dense
+        class="col"
+      />
+      <q-btn
+        flat
+        dense
+        icon="send"
+        @click="emitCommand"
+        :disable="!command"
+        color="primary"
+        label="Send"
+        class="q-ml-sm"
       />
     </q-card-actions>
   </q-card>
@@ -24,15 +38,10 @@ export default {
   name: 'WebConsolePanel',
   emits: ['send-command'],
   props: {
-    consoleLines: {
-      type: Array,
-      required: true
-    }
+    consoleLines: Array
   },
   data() {
-    return {
-      command: ''
-    }
+    return { command: '' }
   },
   methods: {
     emitCommand() {
@@ -45,7 +54,5 @@ export default {
 </script>
 
 <style scoped>
-.full-height {
-  height: 100%;
-}
+.full-height { height: 100%; }
 </style>
