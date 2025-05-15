@@ -1,19 +1,15 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
+import log from 'electron-log'
 
-// needed in case process is undefined under Linux
 const platform = process.platform || os.platform()
-
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow
 
-async function createWindow () {
-  /**
-   * Initial window options
-   */
+async function createWindow() {
   mainWindow = new BrowserWindow({
     icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     width: 1000,
@@ -21,14 +17,18 @@ async function createWindow () {
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
+      webviewTag: true,
+      nodeIntegration: false,
       // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
       preload: path.resolve(
         currentDir,
-        path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION)
-      )
-    }
+        path.join(
+          process.env.QUASAR_ELECTRON_PRELOAD_FOLDER,
+          'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION,
+        ),
+      ),
+    },
   })
-
   if (process.env.DEV) {
     await mainWindow.loadURL(process.env.APP_URL)
   } else {
@@ -36,10 +36,8 @@ async function createWindow () {
   }
 
   if (process.env.DEBUGGING) {
-    // if on DEV or Production with debug enabled
     mainWindow.webContents.openDevTools()
   } else {
-    // we're on production; no access to devtools pls
     mainWindow.webContents.on('devtools-opened', () => {
       mainWindow.webContents.closeDevTools()
     })
@@ -60,6 +58,17 @@ app.on('window-all-closed', () => {
 
 app.on('activate', () => {
   if (mainWindow === null) {
-    createWindow()
+    void createWindow()
   }
+})
+
+ipcMain.on('webview-console', (_, msg) => {
+  const level = msg.startsWith('[error]')
+    ? 'error'
+    : msg.startsWith('[warn]')
+      ? 'warn'
+      : msg.startsWith('[debug]')
+        ? 'debug'
+        : 'info'
+  log[level](msg)
 })
